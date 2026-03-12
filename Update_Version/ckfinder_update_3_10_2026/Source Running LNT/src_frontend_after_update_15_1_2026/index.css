@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+/* Enable native smooth scrolling for anchor and element scrollIntoView */
+html { scroll-behavior: smooth; }
+
+/* Base font to match TailPanel */
+:root {
+  --font-sans: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+html, body, #root { height: 100%; }
+body { font-family: var(--font-sans); font-size: 14px; color: #0f172a; }
+/* Headings scale approximating TailPanel */
+h1 { font-size: 28px; line-height: 1.2; font-weight: 700; }
+h2 { font-size: 20px; line-height: 1.3; font-weight: 600; }
+h3 { font-size: 16px; line-height: 1.35; font-weight: 600; }
+
+
+/* =========================
+   QUILL PICKER LABELS/PREVIEWS
+   (dùng với style-based font/size)
+   ========================= */
+
+/* LABEL hiện tên font trên dropdown (phải khớp whitelist trong JS) */
+.ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before { content: "Arial"; font-family: Arial, sans-serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before { content: "Times New Roman"; font-family: "Times New Roman", serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Roboto"]::before { content: "Roboto"; font-family: "Roboto", sans-serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Montserrat"]::before { content: "Montserrat"; font-family: "Montserrat", sans-serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Lora"]::before { content: "Lora"; font-family: "Lora", serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Poppins"]::before { content: "Poppins"; font-family: "Poppins", sans-serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Open Sans"]::before { content: "Open Sans"; font-family: "Open Sans", sans-serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before { content: "Georgia"; font-family: Georgia, serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before { content: "Verdana"; font-family: Verdana, sans-serif; }
+.ql-picker.ql-font .ql-picker-label[data-value="Courier New"]::before { content: "Courier New"; font-family: "Courier New", monospace; }
+
+/* ITEM preview trong menu font */
+.ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before { content: "Arial"; font-family: Arial, sans-serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before { content: "Times New Roman"; font-family: "Times New Roman", serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Roboto"]::before { content: "Roboto"; font-family: "Roboto", sans-serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Montserrat"]::before { content: "Montserrat"; font-family: "Montserrat", sans-serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Lora"]::before { content: "Lora"; font-family: "Lora", serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Poppins"]::before { content: "Poppins"; font-family: "Poppins", sans-serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Open Sans"]::before { content: "Open Sans"; font-family: "Open Sans", sans-serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before { content: "Georgia"; font-family: Georgia, serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before { content: "Verdana"; font-family: Verdana, sans-serif; }
+.ql-picker.ql-font .ql-picker-item[data-value="Courier New"]::before { content: "Courier New"; font-family: "Courier New", monospace; }
+
+/* LABEL size */
+.ql-picker.ql-size .ql-picker-label[data-value="10px"]::before { content: "10px"; }
+.ql-picker.ql-size .ql-picker-label[data-value="12px"]::before { content: "12px"; }
+.ql-picker.ql-size .ql-picker-label[data-value="14px"]::before { content: "14px"; }
+.ql-picker.ql-size .ql-picker-label[data-value="16px"]::before { content: "16px"; }
+.ql-picker.ql-size .ql-picker-label[data-value="18px"]::before { content: "18px"; }
+.ql-picker.ql-size .ql-picker-label[data-value="24px"]::before { content: "24px"; }
+.ql-picker.ql-size .ql-picker-label[data-value="32px"]::before { content: "32px"; }
+
+/* ITEM size */
+.ql-picker.ql-size .ql-picker-item[data-value="10px"]::before { content: "10px"; }
+.ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { content: "12px"; }
+.ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { content: "14px"; }
+.ql-picker.ql-size .ql-picker-item[data-value="16px"]::before { content: "16px"; }
+.ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { content: "18px"; }
+.ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { content: "24px"; }
+.ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { content: "32px"; }
+
+/* Nhãn mặc định (nếu có) */
+.ql-picker.ql-size .ql-picker-item[data-value="false"]::before,
+.ql-picker.ql-size .ql-picker-label[data-value="false"]::before { content: "Normal"; }
+
+/* Bạn KHÔNG cần các class .ql-font-arial/.ql-font-roboto... nữa khi dùng style-based.
+   Nếu html cũ đang có class, giữ cũng không sao, nhưng có thể xóa block cũ để gọn. */
+
+/* ----- Nới rộng & chống xuống dòng cho dropdown Font ----- */
+.ql-snow .ql-picker.ql-font {
+  min-width: 200px;                    /* nới rộng label */
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label,
+.ql-snow .ql-picker.ql-font .ql-picker-item {
+  white-space: nowrap;                 /* không cho xuống dòng */
+}
+
+/* Dropdown list rộng & cuộn được nếu dài */
+.ql-snow .ql-picker.ql-font .ql-picker-options {
+  min-width: 220px;                    /* rộng hơn label một chút */
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* Giảm khả năng label bị “đè” bởi mũi tên ▼ */
+.ql-snow .ql-picker.ql-font .ql-picker-label {
+  padding-right: 28px;                 /* chừa chỗ cho caret */
+}
+
+/* (tuỳ chọn) nới Size tương tự */
+.ql-snow .ql-picker.ql-size {
+  min-width: 110px;
+}
+.ql-snow .ql-picker.ql-size .ql-picker-options {
+  min-width: 120px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* Hiển thị tên đẹp cho các giá trị có dấu cách (data-value = đúng tên font) */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before {
+  content: "Times New Roman";
+  font-family: "Times New Roman", serif;
+}
+
+/* -------------------------
+   Dark themed scrollbars (WebKit + Firefox)
+   Matches the Treblle-like navy palette used across the app.
+   - Applies globally to make both window and inner scrollbars cohesive.
+   - Works in Chromium-based browsers and Firefox (best-effort).
+   ------------------------- */
+:root{
+  --scroll-bg: #041026;       /* deep navy track (matches background) */
+  --scroll-thumb: #123447;    /* dark thumb */
+  --scroll-thumb-hover: #2b9bf0; /* bright blue accent on hover */
+}
+
+/* Light theme overrides when ThemeContext sets data-theme="light" on <html> */
+[data-theme="light"] {
+  --scroll-bg: #f3f4f6;       /* light track */
+  --scroll-thumb: #c1c7cd;    /* subtle gray thumb */
+  --scroll-thumb-hover: #2b9bf0; /* keep blue accent on hover */
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-bg);
+}
+
+/* WebKit browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+  background: var(--scroll-bg);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* keep track subtle */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-thumb);
+  border-radius: 10px;
+  border: 3px solid var(--scroll-bg); /* padding around thumb to create a thin track effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-hover);
+}
+
+/* Optional: slightly thinner scrollbars on small screens */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+}
+
+/* Search highlight used by header search to mark matched text */
+mark.search-highlight {
+  background: #cbe9ff; /* soft blue tint */
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* ==================================================
+   Light-theme color variables + overrides
+   These provide a blue-tinted white palette when
+   ThemeContext sets `data-theme="light"` on <html>.
+   We override common Tailwind bg classes used across
+   the app so the overall look shifts to logo-like blue.
+   ================================================== */
+
+[data-theme="light"] {
+  --app-bg: #F3FBFF;    /* page background (very light blue) */
+  --panel-bg: #FBFDFF;  /* panels / dropdowns */
+  --tint-100: #EEF9FF;  /* form controls / inputs */
+  --tint-200: #E0F2FF;  /* hover / subtle highlights */
+  --muted-bg: #F8FDFF;  /* very subtle panels */
+}
+
+/* Apply to body and common white backgrounds */
+[data-theme="light"] body,
+[data-theme="light"] .bg-white {
+  background-color: var(--app-bg) !important;
+}
+
+[data-theme="light"] .bg-gray-50 {
+  background-color: var(--muted-bg) !important;
+}
+
+[data-theme="light"] .bg-gray-100 {
+  background-color: var(--tint-100) !important;
+}
+
+[data-theme="light"] .bg-gray-200 {
+  background-color: var(--tint-200) !important;
+}
+
+/* Override some hover utilities (escape colon in classname) */
+[data-theme="light"] .hover\:bg-gray-100:hover {
+  background-color: var(--tint-200) !important;
+}
+
+/* Dropdown / modal backgrounds */
+[data-theme="light"] .bg-white.text-gray-900,
+[data-theme="light"] .modal-container,
+[data-theme="light"] .modal {
+  background-color: var(--panel-bg) !important;
+}
+
+/* Ensure result list hover uses blue tint */
+[data-theme="light"] .hover\:bg-gray-100:hover {
+  background-color: var(--tint-200) !important;
+}

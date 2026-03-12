@@ -1,0 +1,11 @@
+Category con chưa xoá, cập nhật vị trí được. (xong, sửa lại lên xuống cho category - chưa chặn nếu đầu or đuôi)
+Image cần nút thêm hình ảnh, ko cần nhập tên hình ảnh. (ko cần lưu hình ảnh theo tên hay theo category nữa) (xong - lưu theo image + date)
+Thiết kế lại giao diện list category, bớt border lại, màu cha con rõ ràng. (xong)
+Thêm category level 3 vào database và load lên giao diện. Category 3 cấp 3 màu khác nhau. (xong)
+
+
+
+Click đóng mở module, đóng mở category, thay đổi kích thước màn hình theo đóng mở. 
+Test thử database với sql server. -> Tìm hiểu truy vấn trực tiếp SQL server chứ ko phải backend.
+Thêm tính năng backup + version chỉnh sửa. 
+** đổi data sang SQLServer
