@@ -1,0 +1,82 @@
+USE [guidebook_fullstack];
+GO
+
+/*  Thêm cột mới dạng String, cho phép NULL tạm thời để không lỗi dữ liệu cũ */
+
+IF COL_LENGTH('dbo.categories', 'category_type') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[categories]
+    ADD [category_type] NVARCHAR(20) NULL;
+END
+GO
+
+/*  Backfill dữ liệu cũ về giá trị mặc định Work Area */
+
+UPDATE [dbo].[categories]
+SET [category_type] = N'Work Area'
+WHERE [category_type] IS NULL;
+GO
+
+
+/* Đặt NOT NULL và DEFAULT cho bản ghi mới */
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.default_constraints dc
+    JOIN sys.columns c
+      ON c.default_object_id = dc.object_id
+    JOIN sys.tables t
+      ON t.object_id = c.object_id
+    WHERE t.name = 'categories'
+      AND c.name = 'category_type'
+)
+BEGIN
+    ALTER TABLE [dbo].[categories]
+    ADD CONSTRAINT [DF_categories_category_type]
+    DEFAULT (N'Work Area') FOR [category_type];
+END
+GO
+
+ALTER TABLE [dbo].[categories]
+ALTER COLUMN [category_type] NVARCHAR(20) NOT NULL;
+GO
+
+/* Thêm CHECK constraint để khóa đúng 3 nhóm */
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = 'CK_categories_category_type'
+)
+BEGIN
+    ALTER TABLE [dbo].[categories]
+    ADD CONSTRAINT [CK_categories_category_type]
+    CHECK ([category_type] IN (N'Work Area', N'Report', N'Setting'));
+END
+GO
+
+
+/* Thêm index phục vụ lọc danh sách theo module + category_type + order_index */
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_categories_module_type_parent_order'
+      AND object_id = OBJECT_ID('dbo.categories')
+)
+BEGIN
+    CREATE INDEX [IX_categories_module_type_parent_order]
+    ON [dbo].[categories] ([module_id], [category_type], [parent_id], [order_index], [id]);
+END
+GO
+
+
+/* Kiểm tra kết quả*/
+SELECT TOP 20
+    id, module_id, parent_id, title, category_type, order_index, is_active
+FROM [dbo].[categories]
+ORDER BY module_id, category_type, parent_id, order_index, id;
+GO
+
+SELECT category_type, COUNT(*) AS total
+FROM [dbo].[categories]
+GROUP BY category_type;
+GO

@@ -1,11 +1,11 @@
 import axios from "axios";
 import { getAccessToken } from "../config/session";
-// import { API_BASE_URL } from "../config/config";
+import { API_BASE_URL } from "../config/config";
 
 const api = axios.create({
   // If served under sub-path (e.g., /docs), prefix API with BASE_URL
-  baseURL: `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/api`,
-  // baseURL: `${(import.meta.env.VITE_API_URL || '/').replace(/\/$/, '')}/api`,
+  // baseURL: `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/api`,
+  baseURL: `${(import.meta.env.VITE_API_URL || '/').replace(/\/$/, '')}/api`,
   headers: {
     "Content-Type": "application/json"
   },

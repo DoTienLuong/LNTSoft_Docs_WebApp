@@ -1,0 +1,743 @@
+{
+  "info": {
+    "name": "LNT Backend Full API",
+    "description": "Full API test collection for backend project. Includes auth, modules, categories, contents, images, convert. Some requests are optional depending on seeded data and user role.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "de5307a1-bf16-4c7f-bd45-8bff0a67c8fe"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "moduleId", "value": "MD002" },
+    { "key": "moduleName", "value": "Demo Module" },
+    { "key": "createdModuleId", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "parentCategoryId", "value": "" },
+    { "key": "contentId", "value": "" },
+    { "key": "imageId", "value": "" },
+    { "key": "searchKeyword", "value": "Demo" },
+    { "key": "categoryType", "value": "Work Area" },
+    { "key": "accessToken", "value": "" },
+    { "key": "adminUserId", "value": "1" },
+    { "key": "testUsername", "value": "" },
+    { "key": "testEmail", "value": "" },
+    { "key": "testPassword", "value": "Secret123!" },
+    { "key": "docxFile", "value": "" },
+    { "key": "imageFile", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 Auth",
+      "item": [
+        {
+          "name": "Register (dynamic user)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const s = Date.now();",
+                  "pm.collectionVariables.set('testUsername', `pm_user_${s}`);",
+                  "pm.collectionVariables.set('testEmail', `pm_user_${s}@example.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 409', function () {",
+                  "  pm.expect([200, 409]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"role\": \"customer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Create test user. Dynamic username/email are generated in pre-request script."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "pm.test('accessToken exists', function () { pm.expect(json.accessToken).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 401', function () {",
+                  "  pm.expect([200, 401]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Requires refresh cookie from login in the same Postman run/session."
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"{{testPassword}}\",\n  \"new_password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "change-password"]
+            },
+            "description": "Uses same password as a no-op test."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Admin - Get Users (optional)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "admin", "users"]
+            },
+            "description": "Requires admin role token."
+          }
+        },
+        {
+          "name": "Admin - Update User (optional)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"customer\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/admin/user/{{adminUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "admin", "user", "{{adminUserId}}"]
+            },
+            "description": "Requires admin role token."
+          }
+        },
+        {
+          "name": "Admin - Reset Password (optional)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_password\": \"Secret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/admin/user/{{adminUserId}}/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "admin", "user", "{{adminUserId}}", "reset-password"]
+            },
+            "description": "Requires admin role token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Modules",
+      "item": [
+        {
+          "name": "Get Modules",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.length > 0) {",
+                  "  const firstId = json.data[0].id;",
+                  "  if (firstId) pm.collectionVariables.set('moduleId', String(firstId));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/modules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "modules"]
+            }
+          }
+        },
+        {
+          "name": "Get Module By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/modules/{{moduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "modules", "{{moduleId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Module",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 or 500 depending DB schema', function () {",
+                  "  pm.expect([201, 500]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json?.data?.id) pm.collectionVariables.set('createdModuleId', String(json.data.id));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PM Module {{moduleName}}\",\n  \"icon\": \"box\",\n  \"order_index\": 999,\n  \"is_active\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/modules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "modules"]
+            },
+            "description": "Optional if module table schema supports insert without explicit moduleID."
+          }
+        },
+        {
+          "name": "Update Module",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PM Module Updated\",\n  \"icon\": \"book\",\n  \"is_active\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/modules/{{createdModuleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "modules", "{{createdModuleId}}"]
+            },
+            "description": "Use createdModuleId from previous request."
+          }
+        },
+        {
+          "name": "Delete Module",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/modules/{{createdModuleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "modules", "{{createdModuleId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Categories",
+      "item": [
+        {
+          "name": "Get Categories by Module",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories?module_id={{moduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"],
+              "query": [
+                { "key": "module_id", "value": "{{moduleId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Categories include_inactive",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories?module_id={{moduleId}}&include_inactive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"],
+              "query": [
+                { "key": "module_id", "value": "{{moduleId}}" },
+                { "key": "include_inactive", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) pm.collectionVariables.set('categoryId', String(json.data.id));",
+                  "if (json?.data?.id) pm.collectionVariables.set('parentCategoryId', String(json.data.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"module_id\": \"{{moduleId}}\",\n  \"title\": \"PM Category {{searchKeyword}}\",\n  \"description\": \"Created by Postman\",\n  \"category_type\": \"{{categoryType}}\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            },
+            "description": "order_index is auto-calculated by backend."
+          }
+        },
+        {
+          "name": "Create Child Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"module_id\": \"{{moduleId}}\",\n  \"parent_id\": {{parentCategoryId}},\n  \"title\": \"PM Child Category\",\n  \"description\": \"Child category for scope validation\",\n  \"category_type\": \"{{categoryType}}\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Category By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "{{categoryId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"PM Category Updated\",\n  \"description\": \"Updated by Postman\",\n  \"category_type\": \"Report\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "{{categoryId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "{{categoryId}}"]
+            },
+            "description": "Will fail with 400 if category still has children/contents."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Contents",
+      "item": [
+        {
+          "name": "Get Contents by category_id",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contents?category_id={{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contents"],
+              "query": [
+                { "key": "category_id", "value": "{{categoryId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Contents include=all",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contents?category_id={{categoryId}}&include=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contents"],
+              "query": [
+                { "key": "category_id", "value": "{{categoryId}}" },
+                { "key": "include", "value": "all" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) pm.collectionVariables.set('contentId', String(json.data.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": {{categoryId}},\n  \"title\": \"PM Content {{searchKeyword}}\",\n  \"html_content\": \"<h1>Postman Content</h1><p>This is a test content.</p>\",\n  \"plain_content\": \"Postman Content This is a test content.\",\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contents"]
+            }
+          }
+        },
+        {
+          "name": "Get Content By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contents/{{contentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contents", "{{contentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Content",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"PM Content Updated\",\n  \"plain_content\": \"Updated plain content\",\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contents/{{contentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contents", "{{contentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Search Contents",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contents/search?q={{searchKeyword}}&module_id={{moduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contents", "search"],
+              "query": [
+                { "key": "q", "value": "{{searchKeyword}}" },
+                { "key": "module_id", "value": "{{moduleId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Contents Tree by Category",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contents/tree/{{categoryId}}?include=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contents", "tree", "{{categoryId}}"],
+              "query": [
+                { "key": "include", "value": "all" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Content",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/contents/{{contentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contents", "{{contentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Images",
+      "item": [
+        {
+          "name": "Upload Image to Content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) pm.collectionVariables.set('imageId', String(json.data.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{imageFile}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/content/{{contentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "content", "{{contentId}}"]
+            },
+            "description": "Set collection variable imageFile to a local file path before running."
+          }
+        },
+        {
+          "name": "Get Images by Content",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/images/content/{{contentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "content", "{{contentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Images by Category",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/images/category/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "category", "{{categoryId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Image (optional file)",
+          "request": {
+            "method": "PUT",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "caption",
+                  "type": "text",
+                  "value": "Updated by Postman"
+                },
+                {
+                  "key": "order_index",
+                  "type": "text",
+                  "value": "1"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{imageFile}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "{{imageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Image",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "{{imageId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Convert DOCX",
+      "item": [
+        {
+          "name": "Convert DOCX to HTML",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{docxFile}}"
+                },
+                {
+                  "key": "contentId",
+                  "type": "text",
+                  "value": "{{contentId}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/convert",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "convert"]
+            },
+            "description": "Set collection variable docxFile to a local .docx file path before running."
+          }
+        }
+      ]
+    }
+  ]
+}
