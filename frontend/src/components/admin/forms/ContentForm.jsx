@@ -15,6 +15,7 @@ export default function ContentForm({
   loading,
   ckfinderBasePath = '/',
 }) {
+  const isEditing = !!initial?.id;
   const [title, setTitle] = useState(initial?.title || initial?.name || '');
   const [orderIndex, setOrderIndex] = useState(initial?.order_index ?? initial?.order ?? initial?.sort_index ?? 0);
   const [published, setPublished] = useState(!!(initial?.is_published ?? initial?.published ?? true));
@@ -54,8 +55,10 @@ export default function ContentForm({
     else if (nm.length < 3) e.title = 'Tối thiểu 3 ký tự';
     else if (nm.length > 120) e.title = 'Tối đa 120 ký tự';
 
-    const oi = Number(orderIndex);
-    if (!Number.isInteger(oi) || oi < 0) e.order_index = 'Order phải là số nguyên ≥ 0';
+    if (isEditing) {
+      const oi = Number(orderIndex);
+      if (!Number.isInteger(oi) || oi < 0) e.order_index = 'Order phải là số nguyên ≥ 0';
+    }
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -73,10 +76,12 @@ export default function ContentForm({
       category_id: Number(categoryId),
       is_published: !!published,
       parent_id: parentId ? Number(parentId) : null,
-      order_index: Number.isInteger(Number(orderIndex)) ? Number(orderIndex) : 0,
       html_content: bodyHtml,
       plain_content: (bodyHtml || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(),
     };
+    if (isEditing) {
+      payload.order_index = Number(orderIndex);
+    }
     onSubmit && onSubmit(payload);
   };
 
@@ -120,28 +125,30 @@ export default function ContentForm({
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="md:col-span-2">
+          <div className={isEditing ? 'md:col-span-2' : 'md:col-span-3'}>
             <label className="block text-sm font-medium mb-1">Tiêu đề</label>
             <input value={title} onChange={(e) => setTitle(e.target.value)} className={`w-full border rounded px-3 py-2 ${errors.title ? 'border-red-500' : 'border-gray-300'}`} placeholder="Nhập tiêu đề" />
             {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title}</p>}
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Order</label>
-            <input
-              type="number"
-              value={orderIndex}
-              onChange={(e) => {
-                const v = e.target.valueAsNumber;
-                if (Number.isNaN(v)) setOrderIndex('');
-                else setOrderIndex(Math.max(0, Math.trunc(v)));
-              }}
-              className={`w-full border rounded px-3 py-2 ${errors.order_index ? 'border-red-500' : 'border-gray-300'}`}
-              min={0}
-              step={1}
-              inputMode="numeric"
-            />
-            {errors.order_index && <p className="text-xs text-red-600 mt-1">{errors.order_index}</p>}
-          </div>
+          {isEditing && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Order</label>
+              <input
+                type="number"
+                value={orderIndex}
+                onChange={(e) => {
+                  const v = e.target.valueAsNumber;
+                  if (Number.isNaN(v)) setOrderIndex('');
+                  else setOrderIndex(Math.max(0, Math.trunc(v)));
+                }}
+                className={`w-full border rounded px-3 py-2 ${errors.order_index ? 'border-red-500' : 'border-gray-300'}`}
+                min={0}
+                step={1}
+                inputMode="numeric"
+              />
+              {errors.order_index && <p className="text-xs text-red-600 mt-1">{errors.order_index}</p>}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">Trạng thái</label>
             <div className="flex items-center h-10">

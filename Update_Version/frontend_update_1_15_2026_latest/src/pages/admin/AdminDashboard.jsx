@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import Header from '../../components/Header';
+import AppFooter from '../../components/footer/AppFooter';
 
 export default function AdminDashboard({ children, user, onLogout }) {
   const [open, setOpen] = useState(false); // mobile drawer
@@ -51,6 +52,7 @@ export default function AdminDashboard({ children, user, onLogout }) {
           )}
         </main>
       </div>
+      <AppFooter />
     </div>
   );
 }

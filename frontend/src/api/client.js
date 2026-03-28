@@ -3,7 +3,9 @@ import { getAccessToken } from "../config/session";
 import { API_BASE_URL } from "../config/config";
 
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`, // lấy base URL theo môi trường (VITE_API_URL)
+  // If served under sub-path (e.g., /docs), prefix API with BASE_URL
+  // baseURL: `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/api`,
+  baseURL: `${(import.meta.env.VITE_API_URL || '/').replace(/\/$/, '')}/api`,
   headers: {
     "Content-Type": "application/json"
   },

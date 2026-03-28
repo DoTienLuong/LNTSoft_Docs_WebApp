@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/authService";
 import { useTheme } from "../../contexts/ThemeContext";
 import { getThemeStyles } from "../../config/themeStyles";
@@ -9,6 +10,8 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,6 +30,20 @@ export default function Login({ onLogin }) {
   };
   const { effective } = useTheme();
   const theme = getThemeStyles(effective);
+
+  const handleForgot = (e) => {
+    e.preventDefault();
+    alert("Please contact the administrator to reset your password.");
+  };
+
+  const handleCancel = () => {
+    // Quay lại trang trước hoặc về trang chủ nếu không có lịch sử
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
 
   return (
     <div className="min-h-screen relative">
@@ -79,22 +96,35 @@ export default function Login({ onLogin }) {
                 />
               </div>
 
-              <div className="flex items-center justify-between mb-4">
-                <label className="inline-flex items-center text-sm">
-                  <input type="checkbox" className="mr-2" /> Remember me
-                </label>
-                <a href="#" className="text-sm text-blue-600 hover:underline">Forgot?</a>
+              <div className="flex items-center justify-end mb-4">
+                <button
+                  type="button"
+                  onClick={handleForgot}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Forgot?
+                </button>
               </div>
 
               {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className={`${theme.loginBtnClass} disabled:opacity-60`}
-              >
-                {loading ? "Signing in..." : "Sign in"}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`${theme.loginBtnClass} disabled:opacity-60`}
+                >
+                  {loading ? "Signing in..." : "Sign in"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-sm font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
         </div>

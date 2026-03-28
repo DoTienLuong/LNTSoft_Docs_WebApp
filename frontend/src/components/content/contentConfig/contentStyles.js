@@ -3,7 +3,7 @@ export function getContentStyles(effective) {
   const isDark = effective === "dark";
   if (isDark) {
     return {
-      container: "flex-1 p-6 overflow-y-auto h-full bg-[#041026] text-[#e6eef8]",
+      container: "flex-1 p-4 md:p-6 overflow-y-auto min-h-0 h-full bg-[#041026] text-[#e6eef8]",
       title: "text-2xl md:text-3xl font-bold mb-6 text-white",
       panel: "p-4 rounded mt-6 border border-[#083047] bg-transparent",
       input: "w-full bg-[#07203a] border border-[#083047] px-2 py-1 text-sm rounded mb-2 text-[#e6eef8]",
@@ -33,7 +33,7 @@ export function getContentStyles(effective) {
       lightboxBg: "fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4",
       lightboxText: "text-white/80",
 
-      userContainer: "flex-1 p-8 overflow-y-auto h-full bg-[#041026] text-[#e6eef8]",
+      userContainer: "flex-1 p-4 md:p-8 overflow-y-auto min-h-0 h-full bg-[#041026] text-[#e6eef8]",
       userTitle: "text-3xl md:text-4xl font-extrabold mb-6 text-white",
       proseText: "prose max-w-none text-[#cbd8ea] mb-4",
       articleBorder: "border-[#083047]",
@@ -45,7 +45,7 @@ export function getContentStyles(effective) {
 
   // light theme variants
   return {
-    container: "flex-1 p-4 overflow-y-auto h-full bg-white text-gray-900",
+    container: "flex-1 p-4 md:p-6 overflow-y-auto min-h-0 h-full bg-white text-gray-900",
     title: "text-2xl md:text-3xl font-bold mb-6 text-gray-900",
     panel: "p-4 rounded-md mt-4 border border-gray-200 bg-white shadow-sm",
     input: "w-full border px-3 py-2 text-sm rounded mb-3 bg-white text-gray-900",
@@ -75,7 +75,7 @@ export function getContentStyles(effective) {
     lightboxBg: "fixed inset-0 z-50 bg-white/90 flex items-center justify-center p-4",
     lightboxText: "text-gray-900",
 
-    userContainer: "flex-1 p-8 overflow-y-auto h-full bg-white text-gray-900",
+    userContainer: "flex-1 p-4 md:p-8 overflow-y-auto min-h-0 h-full bg-white text-gray-900",
     userTitle: "text-3xl md:text-4xl font-extrabold mb-6 text-gray-900",
     proseText: "prose max-w-none text-gray-800 mb-4",
     articleBorder: "border-gray-200",

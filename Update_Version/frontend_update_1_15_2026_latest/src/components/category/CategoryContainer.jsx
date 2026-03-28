@@ -126,14 +126,7 @@ export default function CategoryContainer({ moduleId, onSelectCategory, selected
   // theme styles
   const { effective } = useTheme();
   const styles = getCategoryStyles(effective);
-  const fxBannerClass = effective === "dark"
-    ? "mb-2 rounded-lg px-2.5 py-2 bg-[#061a2c] border border-[#0f3854]"
-    : "mb-2 rounded-lg px-2.5 py-2 bg-white border border-slate-200";
-  const fxBadgeClass = effective === "dark"
-    ? "inline-flex items-center justify-center h-7 px-2.5 rounded bg-[#174e86] text-white text-xs font-bold"
-    : "inline-flex items-center justify-center h-7 px-2.5 rounded bg-[#1e4f8f] text-white text-xs font-bold";
-  const fxTitleClass = effective === "dark" ? "text-[#e6eef8] text-[11px] font-semibold leading-tight" : "text-[#1f3f6f] text-[11px] font-semibold leading-tight";
-  const fxSubClass = effective === "dark" ? "text-[#9fb7cc] text-[10px] leading-tight" : "text-slate-500 text-[10px] leading-tight";
+  const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
 
   // Ẩn hoàn toàn khi collapsed
   if (collapsed) {
@@ -144,14 +137,8 @@ export default function CategoryContainer({ moduleId, onSelectCategory, selected
     <aside className={styles.listStyle}>
       {/* --- Header + Search cố định --- */}
       <div className={`sticky top-0 bg-transparent z-10 pb-1 ${styles.headerBorderClass}`}>
-        <div className={fxBannerClass}>
-          <div className="flex items-center gap-2">
-            <span className={fxBadgeClass}>FX</span>
-            <div>
-              <div className={fxTitleClass}>PRO PRODUCT SUITE</div>
-              <div className={fxSubClass}>Simplifying your operation</div>
-            </div>
-          </div>
+        <div className="mb-2 px-1">
+          <img src={`${BASE}logoTopListCategory.png`} alt="FX PRO PRODUCT SUITE" className="w-full h-auto object-contain" />
         </div>
         <div className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition ${styles.titleTextClass}`}>
           <i className={`${iconModuleSelected} text-sm ${styles.titleTextClass}`}></i>

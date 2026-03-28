@@ -322,13 +322,13 @@ export default function UserContentContainer({ categoryId, moduleId, titleCatego
 
   return (
     <div ref={containerRef} className={theme.userContainer} style={{ scrollBehavior: 'smooth' }}>
-      <div className="flex gap-8">
+      <div className="flex flex-col lg:flex-row gap-8">
         {/* Centered main content */}
         <div className="flex-1 flex justify-center">
           <div className="w-full max-w-4xl bg-transparent p-6">
             {grouped.map((g, gi) => (
               <section key={g.category.id} className={`${gi < grouped.length - 1 ? 'border-b' : ''} pb-6`}>
-                <h3 ref={(el) => (categoryRefs.current[g.category.id] = el)} className="text-2xl font-semibold mb-4">{g.category.title}</h3>
+                <h3 ref={(el) => (categoryRefs.current[g.category.id] = el)} className="text-xl md:text-2xl font-semibold mb-4">{g.category.title}</h3>
                 {g.items.map((c, idx) => (
                   <article
                     key={c.id}
@@ -336,7 +336,7 @@ export default function UserContentContainer({ categoryId, moduleId, titleCatego
                     className={`py-6 ${idx < g.items.length - 1 ? 'border-b' : ''} ${theme.articleBorder}`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="flex-1 text-xl font-semibold">{c.title}</h4>
+                      <h4 className="flex-1 text-lg md:text-xl font-semibold">{c.title}</h4>
                       <button 
                         onClick={() => copyLink(c.id)} 
                         title={copiedId === c.id ? "Copied!" : "Copy link"}
@@ -393,8 +393,8 @@ export default function UserContentContainer({ categoryId, moduleId, titleCatego
           </div>
         </div>
 
-        {/* Right TOC */}
-        <aside className="w-64 shrink-0">
+        {/* Right TOC - hide on small screens */}
+        <aside className="hidden lg:block w-64 shrink-0">
           <div className="sticky top-1 bg-transparent p-3">
                 {/* <h4 className="text-sm font-semibold mb-2">{titleCategory}</h4> */}
             <ul ref={tocRef} className="space-y-2 max-h-[70vh] overflow-auto pr-2" style={{ scrollBehavior: 'smooth' }}>

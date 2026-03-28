@@ -3,12 +3,12 @@ import Switch from '../../admin/Switch';
 import Select from '../../admin/Select';
 
 export default function CategoryForm({ initial, modules, categories, defaultModuleId, onSubmit, onCancel, loading, existingNames = [] }) {
+  const isEditing = !!initial?.id;
   const [title, setTitle] = useState(initial?.title || initial?.name || '');
   const [moduleId, setModuleId] = useState(String(initial?.module_id || defaultModuleId || ''));
+  const [categoryType, setCategoryType] = useState(initial?.category_type || 'Work Area');
   const [parentId, setParentId] = useState(initial?.parent_id ? String(initial.parent_id) : '');
-  const [orderIndex, setOrderIndex] = useState(
-    initial?.order_index ?? initial?.order ?? initial?.sort_index ?? 0
-  );
+  const [orderIndex, setOrderIndex] = useState(initial?.order_index ?? initial?.order ?? initial?.sort_index ?? 0);
   const [active, setActive] = useState(!!(initial?.is_active ?? initial?.active ?? true));
 
   const [errors, setErrors] = useState({});
@@ -16,6 +16,7 @@ export default function CategoryForm({ initial, modules, categories, defaultModu
   useEffect(() => {
     setTitle(initial?.title || initial?.name || '');
     setModuleId(String(initial?.module_id || defaultModuleId || ''));
+    setCategoryType(initial?.category_type || 'Work Area');
     setParentId(initial?.parent_id ? String(initial.parent_id) : '');
     setOrderIndex(initial?.order_index ?? initial?.order ?? initial?.sort_index ?? 0);
     setActive(!!(initial?.is_active ?? initial?.active ?? true));
@@ -28,10 +29,24 @@ export default function CategoryForm({ initial, modules, categories, defaultModu
     [modules]
   );
 
-  // Filter categories: same module, max depth 2
+  const categoryTypeOptions = useMemo(
+    () => [
+      { value: 'Work Area', label: 'Work Area' },
+      { value: 'Setting', label: 'Setting' },
+      { value: 'Report', label: 'Report' },
+    ],
+    []
+  );
+
+  // Filter categories: same module + same type, max depth 2
   const parentOptions = useMemo(() => {
     if (!moduleId) return [];
-    const filtered = (categories || []).filter((c) => String(c.module_id) === moduleId && c.id !== initial?.id);
+    const filtered = (categories || []).filter(
+      (c) =>
+        String(c.module_id) === moduleId &&
+        c.id !== initial?.id &&
+        String(c.category_type || 'Work Area') === String(categoryType)
+    );
     // Only allow root or level 1 categories as parents (max depth = 2)
     const allowed = filtered.filter((c) => {
       if (!c.parent_id) return true; // root level
@@ -46,7 +61,13 @@ export default function CategoryForm({ initial, modules, categories, defaultModu
         label: c.parent_id ? `  ↳ ${c.title || c.name}` : c.title || c.name,
       })),
     ];
-  }, [moduleId, categories, initial]);
+  }, [moduleId, categoryType, categories, initial]);
+
+  useEffect(() => {
+    if (!parentId) return;
+    const isValidParent = parentOptions.some((opt) => opt.value === String(parentId));
+    if (!isValidParent) setParentId('');
+  }, [categoryType, moduleId, parentOptions, parentId]);
 
   const validate = () => {
     const e = {};
@@ -62,9 +83,12 @@ export default function CategoryForm({ initial, modules, categories, defaultModu
     }
 
     if (!moduleId) e.module_id = 'Module bắt buộc';
+    if (!categoryType) e.category_type = 'Category type bắt buộc';
 
-    const oi = Number(orderIndex);
-    if (!Number.isInteger(oi) || oi < 0) e.order_index = 'Order phải là số nguyên ≥ 0';
+    if (isEditing) {
+      const oi = Number(orderIndex);
+      if (!Number.isInteger(oi) || oi < 0) e.order_index = 'Order phải là số nguyên ≥ 0';
+    }
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -76,9 +100,10 @@ export default function CategoryForm({ initial, modules, categories, defaultModu
     onSubmit && onSubmit({
       title: title.trim(),
       module_id: String(moduleId),
+      category_type: categoryType,
       parent_id: parentId ? Number(parentId) : null,
-      order_index: Number(orderIndex),
       is_active: !!active,
+      ...(isEditing ? { order_index: Number(orderIndex) } : {}),
     });
   };
 
@@ -109,6 +134,18 @@ export default function CategoryForm({ initial, modules, categories, defaultModu
         <p className="text-xs text-gray-500 mt-1">Module đã được chọn từ danh sách chính</p>
       </div>
 
+      <div>
+        <label className="block text-sm font-medium mb-1">Type <span className="text-red-500">*</span></label>
+        <Select
+          value={categoryType}
+          onChange={setCategoryType}
+          options={categoryTypeOptions}
+          includePlaceholder={false}
+          error={errors.category_type}
+        />
+        {errors.category_type && <p className="text-xs text-red-600 mt-1">{errors.category_type}</p>}
+      </div>
+
       {moduleId && (
         <div>
           <label className="block text-sm font-medium mb-1">Parent Category</label>
@@ -118,21 +155,29 @@ export default function CategoryForm({ initial, modules, categories, defaultModu
             options={parentOptions}
             placeholder="Chọn parent (optional)"
           />
-          <p className="text-xs text-gray-500 mt-1">Để trống nếu đây là category root. Tối đa 3 cấp.</p>
+          <p className="text-xs text-gray-500 mt-1">Để trống nếu đây là category root. Parent phải cùng module và cùng category type.</p>
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Order</label>
-        <input
-          type="number"
-          value={orderIndex}
-          onChange={(e) => setOrderIndex(e.target.value)}
-          className={`w-40 border rounded px-3 py-2 ${errors.order_index ? 'border-red-500' : 'border-gray-300'}`}
-          min={0}
-        />
-        {errors.order_index && <p className="text-xs text-red-600 mt-1">{errors.order_index}</p>}
-      </div>
+      {isEditing && (
+        <div>
+          <label className="block text-sm font-medium mb-1">Order</label>
+          <input
+            type="number"
+            value={orderIndex}
+            onChange={(e) => {
+              const v = e.target.valueAsNumber;
+              if (Number.isNaN(v)) setOrderIndex('');
+              else setOrderIndex(Math.max(0, Math.trunc(v)));
+            }}
+            className={`w-40 border rounded px-3 py-2 ${errors.order_index ? 'border-red-500' : 'border-gray-300'}`}
+            min={0}
+            step={1}
+            inputMode="numeric"
+          />
+          {errors.order_index && <p className="text-xs text-red-600 mt-1">{errors.order_index}</p>}
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <span className="text-sm">Kích hoạt</span>

@@ -14,6 +14,7 @@ import { FiPlus } from 'react-icons/fi';
 export default function AdminContents({ user, onLogout }) {
   const [modules, setModules] = useState([]);
   const [selectedModuleId, setSelectedModuleId] = useState('');
+  const [selectedCategoryType, setSelectedCategoryType] = useState('Work Area');
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [contents, setContents] = useState([]);
@@ -60,6 +61,12 @@ export default function AdminContents({ user, onLogout }) {
   }, [selectedModuleId]);
 
   useEffect(() => {
+    setSelectedCategoryType('Work Area');
+    setSelectedCategoryId('');
+    setContents([]);
+  }, [selectedModuleId]);
+
+  useEffect(() => {
     const loadContents = async () => {
       if (!selectedModuleId || !selectedCategoryId) {
         setContents([]);
@@ -85,10 +92,34 @@ export default function AdminContents({ user, onLogout }) {
     () => modules.map((m) => ({ value: String(m.id), label: m.title || m.name })),
     [modules]
   );
-  const categoryOptions = useMemo(
-    () => categories.map((c) => ({ value: String(c.id), label: c.title || c.name })),
-    [categories]
+
+  const categoryTypeOptions = useMemo(
+    () => [
+      { value: 'Work Area', label: 'Work Area' },
+      { value: 'Setting', label: 'Setting' },
+      { value: 'Report', label: 'Report' },
+    ],
+    []
   );
+
+  const categoriesByType = useMemo(
+    () => (categories || []).filter((c) => String(c.category_type || 'Work Area') === selectedCategoryType),
+    [categories, selectedCategoryType]
+  );
+
+  const categoryOptions = useMemo(
+    () => categoriesByType.map((c) => ({ value: String(c.id), label: c.title || c.name })),
+    [categoriesByType]
+  );
+
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    const exists = categoriesByType.some((c) => String(c.id) === String(selectedCategoryId));
+    if (!exists) {
+      setSelectedCategoryId('');
+      setContents([]);
+    }
+  }, [categoriesByType, selectedCategoryId]);
 
   // Map for fast parent lookup
   const contentMap = useMemo(() => {
@@ -163,6 +194,7 @@ export default function AdminContents({ user, onLogout }) {
   };
 
   const columns = [
+    { key: 'order_index', label: 'Order', align: 'center', width: 80, render: (v) => v ?? '—' },
     ...(!isSearching
       ? [{
             key: '_exp',
@@ -180,6 +212,7 @@ export default function AdminContents({ user, onLogout }) {
             }
         }]
       : []),
+      
     {
       key: 'title',
       label: 'Title',
@@ -202,7 +235,7 @@ export default function AdminContents({ user, onLogout }) {
         <span className="text-slate-600 text-sm block truncate" title={v || ''}>{v || '—'}</span>
       )
     },
-    { key: 'order_index', label: 'Order', align: 'right', width: 80, render: (v) => v ?? '—' },
+    
     {
       key: 'is_published',
       label: 'Status',
@@ -212,17 +245,6 @@ export default function AdminContents({ user, onLogout }) {
           <Switch checked={!!(row.is_published)} onChange={(val) => handleTogglePublished(row.id, val)} aria-label={`Toggle publish ${row.title || 'content'}`} />
         </div>
       )
-    },
-    {
-      key: 'updated_at',
-      label: 'Last Modify',
-      width: 120,
-      render: (v) => {
-        try {
-          const date = v ? new Date(v) : null;
-          return date ? date.toLocaleDateString() : '—';
-        } catch { return v || '—'; }
-      }
     },
   ];
 
@@ -262,7 +284,7 @@ export default function AdminContents({ user, onLogout }) {
       window.alert('Vui lòng chọn Module và Function trước khi thêm content');
       return;
     }
-    setEditing({ title: '', order_index: 0, is_published: true, parent_id: null, summary: '', body_html: '' });
+    setEditing({ title: '', is_published: true, parent_id: null, summary: '', body_html: '' });
     setTimeout(() => editorAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   };
 
@@ -314,6 +336,13 @@ export default function AdminContents({ user, onLogout }) {
           placeholder="Select module"
         />
         <Select
+          label="Type"
+          value={selectedCategoryType}
+          onChange={setSelectedCategoryType}
+          options={categoryTypeOptions}
+          includePlaceholder={false}
+        />
+        <Select
           label="Function"
           value={selectedCategoryId}
           onChange={setSelectedCategoryId}
@@ -355,7 +384,6 @@ export default function AdminContents({ user, onLogout }) {
                         review: (() => { const t = (c.plain_content ?? c.plainContent ?? c.plain_text ?? c.plain ?? '').toString(); const s = t.replace(/\s+/g,' ').trim(); return s.length > 100 ? s.slice(0, 100) + '…' : s; })(),
                         order_index: c.order_index ?? c.order ?? c.sort_index,
                         is_published: c.is_published ?? c.published ?? false,
-                        updated_at: c.updated_at ?? c.update_at ?? c.updatedAt ?? c.create_update_at,
                         __raw: c,
                         __depth: getDepth(c),
                       }))
@@ -365,7 +393,6 @@ export default function AdminContents({ user, onLogout }) {
                         review: (() => { const t = (node.plain_content ?? node.plainContent ?? node.plain_text ?? node.plain ?? '').toString(); const s = t.replace(/\s+/g,' ').trim(); return s.length > 100 ? s.slice(0, 100) + '…' : s; })(),
                         order_index: node.order_index ?? node.order ?? node.sort_index,
                         is_published: node.is_published ?? node.published ?? false,
-                        updated_at: node.updated_at ?? node.update_at ?? node.updatedAt ?? node.create_update_at,
                         __raw: node,
                         __depth: depth,
                         __hasChildren: hasChildren,

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import CategoryContainer from "../components/category/CategoryContainer";
 import ContentContainer from "../components/content/ContentContainer";
+import AppFooter from "../components/footer/AppFooter";
 import { useTheme } from "../contexts/ThemeContext";
 import { getThemeStyles } from "../config/themeStyles";
 import { moduleService } from "../services/moduleService";
@@ -15,6 +16,7 @@ export default function HomePage({ user, onLogout }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { effective } = useTheme();
   const theme = getThemeStyles(effective);
+  const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
   const userRole = user?.role || 'customer';
   const params = useParams();
   const navigate = useNavigate();
@@ -110,48 +112,64 @@ export default function HomePage({ user, onLogout }) {
             />
           </>
         ) : (
+          <div className="relative flex-1 overflow-hidden">
+            <img
+              src={`${BASE}lnt-background.jpg`}
+              alt="LNT background"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-[#0f2645]/42" />
+            <div className="absolute inset-0 bg-[radial-gradient(120%_95%_at_82%_8%,rgba(95,167,255,0.32)_0%,rgba(17,42,77,0)_56%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,27,50,0.16)_0%,rgba(8,24,44,0.48)_100%)]" />
 
-
-          <div className="flex-1 flex items-center justify-center p-8">
-            {/** use theme-driven welcome card styles */}
-            <WelcomeCard />
+            <div className="relative z-10 flex h-full items-center justify-center p-8">
+              {/** use theme-driven welcome card styles */}
+              <WelcomeCard />
+            </div>
           </div>
         )}
       </div>
+      <AppFooter />
     </div>
   );
 }
 
 function WelcomeCard() {
   const { effective } = useTheme();
-  const theme = getThemeStyles(effective);
   const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
+  const isDark = effective === "dark";
   return (
-    <div className={theme.welcomeCardClass}>
-      <div className={theme.welcomeAccentClass} style={{ width: 56, height: 56 }}>
-        <img src={`${BASE}lntlogo.png`} alt="LNT" className="w-10 h-10 object-contain" />
-      </div>
-
-      <div className="flex flex-col md:flex-row items-center gap-6">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="max-w-[360px] w-full">
-            <img src={`${BASE}LNTlogo_horizontal_color.png`} alt="LNT logo" className="w-full h-auto object-contain" />
-            <p className={`${theme.welcomeTextClass} mt-2`}>A quick reference for company guides and modules</p>
+    <div className={`relative w-full max-w-5xl rounded-lg border ${isDark ? "border-[#4f87d0]/70 bg-[#0f2036]/68" : "border-[#3f79c8]/65 bg-white/72"} backdrop-blur-md shadow-[0_18px_40px_rgba(10,30,60,0.25)] p-4 md:p-5`}>
+      <div className="flex flex-col gap-3 md:pr-52">
+        <div className="flex items-start gap-3 md:gap-4">
+          <img src={`${BASE}lntlogo.png`} alt="LNT" className="w-12 h-12 md:w-14 md:h-14 object-contain shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <h2 className="leading-none font-extrabold tracking-tight !text-[40px] md:text-[90px] whitespace-nowrap">
+              <span className={isDark ? "text-[#d6d7d9]" : "text-[#8e8e91]"}>LNTBOOST </span>
+              <span className="text-[#1570c6]">BUSINESS</span>
+              <span className="text-[#1570c6]"> SUITE</span>
+            </h2>
+            <p className={`mt-0.5 text-[13px] md:text-[18px] font-semibold ${isDark ? "text-[#d7e6fb]" : "text-[#1e3f73]"}`}>
+              Intelligent Cloud Applications &amp; Platform Services
+            </p>
           </div>
         </div>
 
-        <div className="flex-1">
-          <h2 className={`${theme.welcomeTitleClass} mb-2`}>Welcome to LNT Documentation</h2>
-          <p className={`${theme.welcomeTextClass} mb-4`}>Select a module for Step-by-step guides or use search to find what you need.</p>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('openModulesModal'))}
-              className={theme.welcomeBtnClass}
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.85"/><rect x="3" y="13" width="8" height="8" rx="1" fill="currentColor" opacity="0.7"/><rect x="13" y="13" width="8" height="8" rx="1" fill="currentColor" opacity="0.55"/></svg>
-              Open modules
-            </button>
-          </div>
+        <div className="flex flex-col gap-2 md:gap-4">
+          <p className={`text-[15px] md:text-[18px] ${isDark ? "text-[#e6eef8]" : "text-[#1a1a1a]"}`}>
+            <span className="mr-1">📚</span>
+            <span className="font-semibold">Select a module</span> to view guides or
+            <span className="mx-1">🔍</span>
+            <span className="font-semibold">Search</span> to find what you need instantly
+          </p>
+
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('openModulesModal'))}
+            className="inline-flex self-start md:self-auto items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-2 rounded-md shadow-sm whitespace-nowrap md:absolute md:right-5 md:top-1/2 md:-translate-y-1/2"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.85"/><rect x="3" y="13" width="8" height="8" rx="1" fill="currentColor" opacity="0.7"/><rect x="13" y="13" width="8" height="8" rx="1" fill="currentColor" opacity="0.55"/></svg>
+            Open modules
+          </button>
         </div>
       </div>
     </div>

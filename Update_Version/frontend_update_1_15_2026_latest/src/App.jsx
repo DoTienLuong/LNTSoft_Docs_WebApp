@@ -29,8 +29,10 @@ const App = () => {
   const handleLogout = useCallback(async () => {
     await authService.logout();
     setUser(null);
-    // Đảm bảo quay về URL gốc sau khi logout
-    try { window.location.replace('/'); } catch { window.location.href = '/'; }
+    // Đảm bảo quay về đúng base path (vd: /docs/) khi deploy dưới subfolder IIS
+    const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") || "/";
+    const redirectTo = basePath === "/" ? "/" : `${basePath}/`;
+    try { window.location.replace(redirectTo); } catch { window.location.href = redirectTo; }
   }, []);
 
   // Public browsing: no login required for HomePage.

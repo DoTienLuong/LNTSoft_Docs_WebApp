@@ -50,10 +50,12 @@ export default function AdminModules({ user, onLogout }) {
   useEffect(() => { setPage(1); }, [query, modules]);
 
   const columns = [
+    { key: 'order_index', label: 'Order', align: 'center', width: 80, render: (v) => v ?? '—' },
     {
       key: 'icon',
       label: 'Icon',
       width: 64,
+      align: 'center',
       render: (val) => {
         if (!val) return <span className="inline-flex w-6 h-6 items-center justify-center rounded bg-gray-100 text-gray-500">—</span>;
         const s = String(val).trim();
@@ -72,7 +74,7 @@ export default function AdminModules({ user, onLogout }) {
       const text = v || row.title || '—';
       return <span className="truncate inline-block max-w-full" title={text}>{text}</span>;
     } },
-    { key: 'order_index', label: 'Order', align: 'right', width: 80, render: (v) => v ?? '—' },
+    
     {
       key: 'is_active',
       label: 'Status',
@@ -82,20 +84,6 @@ export default function AdminModules({ user, onLogout }) {
           <Switch checked={!!(row.is_active)} onChange={(val) => handleToggleActive(row.id, val)} aria-label={`Toggle ${row.name || row.title || 'module'}`} />
         </div>
       )
-    },
-    {
-      key: 'updated_at',
-      label: 'Last Modify',
-      width: 120,
-      render: (v, row) => {
-        const d = v || row.create_update_at;
-        try {
-          const date = d ? new Date(d) : null;
-          return date ? date.toLocaleDateString() : '—';
-        } catch {
-          return d || '—';
-        }
-      }
     },
   ];
 
@@ -189,7 +177,6 @@ export default function AdminModules({ user, onLogout }) {
                   name: m.name || m.title,
                   order_index: m.order_index ?? m.order ?? m.sort_index,
                   is_active: m.is_active ?? m.active ?? false,
-                  updated_at: m.updated_at ?? m.update_at ?? m.updatedAt ?? m.create_update_at,
                 }))}
                 actions={actions}
                 page={page}

@@ -6,13 +6,14 @@ import Modal from '../../components/admin/Modal';
 import ConfirmDialog from '../../components/admin/ConfirmDialog';
 import Switch from '../../components/admin/Switch';
 import CategoryForm from '../../components/admin/forms/CategoryForm';
-import {moduleService} from '../../services/moduleService';
-import {categoryService} from '../../services/categoryService';
+import { moduleService } from '../../services/moduleService';
+import { categoryService } from '../../services/categoryService';
 import { FiPlus } from 'react-icons/fi';
 
 export default function AdminCategories({ user, onLogout }) {
   const [modules, setModules] = useState([]);
   const [selectedModuleId, setSelectedModuleId] = useState('');
+  const [selectedCategoryType, setSelectedCategoryType] = useState('all');
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -68,6 +69,16 @@ export default function AdminCategories({ user, onLogout }) {
     [modules]
   );
 
+  const categoryTypeOptions = useMemo(
+    () => [
+      { value: 'all', label: 'All Types' },
+      { value: 'Work Area', label: 'Work Area' },
+      { value: 'Setting', label: 'Setting' },
+      { value: 'Report', label: 'Report' },
+    ],
+    []
+  );
+
   // Tạo map để tra parent nhanh
   const catMap = useMemo(() => {
     const map = new Map();
@@ -86,20 +97,30 @@ export default function AdminCategories({ user, onLogout }) {
   };
 
   const filtered = useMemo(() => {
+    const byType = selectedCategoryType === 'all'
+      ? categories
+      : categories.filter((c) => String(c.category_type || 'Work Area') === selectedCategoryType);
     const q = query.trim().toLowerCase();
-    if (!q) return categories;
-    return categories.filter((c) => (c.title || c.name || '').toLowerCase().includes(q));
-  }, [categories, query]);
+    if (!q) return byType;
+    return byType.filter((c) => (c.title || c.name || '').toLowerCase().includes(q));
+  }, [categories, selectedCategoryType, query]);
 
-  useEffect(() => { setPage(1); }, [query, categories]);
+  useEffect(() => { setPage(1); }, [query, categories, selectedCategoryType]);
   useEffect(() => { setExpanded(new Set()); }, [selectedModuleId, categories]);
+
+  const displayCategories = useMemo(
+    () => (selectedCategoryType === 'all'
+      ? categories
+      : categories.filter((c) => String(c.category_type || 'Work Area') === selectedCategoryType)),
+    [categories, selectedCategoryType]
+  );
 
   // Build children map for tree rendering when not searching
   const childrenMap = useMemo(() => {
     const ROOT = '__root__';
     const m = new Map();
     m.set(ROOT, []);
-    for (const c of categories) {
+    for (const c of displayCategories) {
       const p = c.parent_id ? String(c.parent_id) : ROOT;
       if (!m.has(p)) m.set(p, []);
       m.get(p).push(c);
@@ -118,7 +139,7 @@ export default function AdminCategories({ user, onLogout }) {
       );
     }
     return m;
-  }, [categories]);
+  }, [displayCategories]);
 
   const treeRows = useMemo(() => {
     const ROOT = '__root__';
@@ -147,28 +168,30 @@ export default function AdminCategories({ user, onLogout }) {
   };
 
   const columns = [
+    { key: 'order_index', label: 'Order', align: 'center', width: 80, render: (v) => v ?? '—' },
     ...(!isSearching
       ? [{
-            key: '_exp',
-            label: '',
-            width: 24,
-            render: (_, row) => {
-              const has = row.__hasChildren;
-              const open = row.__isOpen;
-              if (!has) return <span className="inline-block w-3" />;
-              return (
-                <button
-                  type="button"
-                  onClick={() => toggleExpand(row.id)}
-                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-100"
-                  aria-label={open ? 'Collapse' : 'Expand'}
-                >
-                  <span className="text-slate-600 text-sm">{open ? '▾' : '▸'}</span>
-                </button>
-              );
-            }
-        }]
+        key: '_exp',
+        label: '',
+        width: 24,
+        render: (_, row) => {
+          const has = row.__hasChildren;
+          const open = row.__isOpen;
+          if (!has) return <span className="inline-block w-3" />;
+          return (
+            <button
+              type="button"
+              onClick={() => toggleExpand(row.id)}
+              className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-100"
+              aria-label={open ? 'Collapse' : 'Expand'}
+            >
+              <span className="text-slate-600 text-sm">{open ? '▾' : '▸'}</span>
+            </button>
+          );
+        }
+      }]
       : []),
+
     {
       key: 'title',
       label: 'Title',
@@ -184,7 +207,12 @@ export default function AdminCategories({ user, onLogout }) {
         );
       }
     },
-    { key: 'order_index', label: 'Order', align: 'right', width: 80, render: (v) => v ?? '—' },
+    {
+      key: 'category_type',
+      label: 'Type',
+      width: 120,
+      render: (v) => v || 'Work Area',
+    },
     {
       key: 'is_active',
       label: 'Status',
@@ -194,17 +222,6 @@ export default function AdminCategories({ user, onLogout }) {
           <Switch checked={!!(row.is_active)} onChange={(val) => handleToggleActive(row.id, val)} aria-label={`Toggle ${row.title || 'category'}`} />
         </div>
       )
-    },
-    {
-      key: 'updated_at',
-      label: 'Last Modify',
-      width: 120,
-      render: (v) => {
-        try {
-          const date = v ? new Date(v) : null;
-          return date ? date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '—';
-        } catch { return v || '—'; }
-      }
     },
   ];
 
@@ -240,7 +257,11 @@ export default function AdminCategories({ user, onLogout }) {
   const handleToggleActive = async (id, nextVal) => {
     setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, is_active: nextVal } : c)));
     try {
-      await categoryService.update(id, { is_active: nextVal });
+      const current = categories.find((c) => c.id === id);
+      await categoryService.update(id, {
+        is_active: nextVal,
+        category_type: current?.category_type,
+      });
     } catch (e) {
       // rollback
       setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, is_active: !nextVal } : c)));
@@ -294,10 +315,17 @@ export default function AdminCategories({ user, onLogout }) {
           options={moduleOptions}
           placeholder="Select module"
         />
+        <Select
+          label="Type"
+          value={selectedCategoryType}
+          onChange={setSelectedCategoryType}
+          options={categoryTypeOptions}
+          includePlaceholder={false}
+        />
       </div>
       <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
         <div className="relative max-w-md w-full">
-          <input value={query} onChange={(e)=>setQuery(e.target.value)} className="w-full border border-gray-300 shadow-sm rounded-lg pl-9 pr-3 py-2" placeholder="Search function..." />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} className="w-full border border-gray-300 shadow-sm rounded-lg pl-9 pr-3 py-2" placeholder="Search function..." />
           <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none pl-3">
             <span className="text-gray-400">🔍</span>
           </div>
@@ -323,25 +351,25 @@ export default function AdminCategories({ user, onLogout }) {
                 data={
                   isSearching
                     ? filtered.map((c) => ({
-                        id: c.id,
-                        title: c.title || c.name,
-                        order_index: c.order_index ?? c.order ?? c.sort_index,
-                        is_active: c.is_active ?? c.active ?? false,
-                        updated_at: c.updated_at ?? c.update_at ?? c.updatedAt ?? c.create_update_at,
-                        __raw: c,
-                        __depth: getDepth(c),
-                      }))
+                      id: c.id,
+                      order_index: c.order_index ?? c.order ?? c.sort_index,
+                      title: c.title || c.name,
+                      category_type: c.category_type || 'Work Area',
+                      is_active: c.is_active ?? c.active ?? false,
+                      __raw: c,
+                      __depth: getDepth(c),
+                    }))
                     : treeRows.map(({ node, depth, hasChildren, isOpen }) => ({
-                        id: node.id,
-                        title: node.title || node.name,
-                        order_index: node.order_index ?? node.order ?? node.sort_index,
-                        is_active: node.is_active ?? node.active ?? false,
-                        updated_at: node.updated_at ?? node.update_at ?? node.updatedAt ?? node.create_update_at,
-                        __raw: node,
-                        __depth: depth,
-                        __hasChildren: hasChildren,
-                        __isOpen: isOpen,
-                      }))
+                      id: node.id,
+                      order_index: node.order_index ?? node.order ?? node.sort_index,
+                      title: node.title || node.name,
+                      category_type: node.category_type || 'Work Area',
+                      is_active: node.is_active ?? node.active ?? false,
+                      __raw: node,
+                      __depth: depth,
+                      __hasChildren: hasChildren,
+                      __isOpen: isOpen,
+                    }))
                 }
                 actions={actions}
               />
@@ -351,7 +379,7 @@ export default function AdminCategories({ user, onLogout }) {
       )}
 
       {/* Create/Edit Modal */}
-      <Modal open={openModal} title={modalMode === 'create' ? 'Thêm Category' : 'Sửa Category'} onClose={() => !saving && setOpenModal(false)}>
+      <Modal open={openModal} title={modalMode === 'create' ? 'Thêm Function' : 'Sửa Function'} onClose={() => !saving && setOpenModal(false)}>
         <CategoryForm
           initial={editing}
           modules={modules}

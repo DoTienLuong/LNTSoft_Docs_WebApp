@@ -99,7 +99,7 @@ export default function Table({
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`px-3 py-3 ${col.align === 'right' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase`}
+                className={`px-3 py-3 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} text-xs font-medium text-gray-500 uppercase`}
                 style={col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : undefined}
               >
                 {col.label}
@@ -128,7 +128,7 @@ export default function Table({
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className={`px-3 py-4 whitespace-nowrap overflow-hidden ${col.align === 'right' ? 'text-right' : 'text-left'}`}
+                  className={`px-3 py-4 whitespace-nowrap overflow-hidden ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}
                   style={col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : undefined}
                 >
                   {renderCell(col, row)}

@@ -30,7 +30,7 @@ export function getCategoryStyles(effective) {
   // light theme
   return {
     listStyle:
-      "w-full md:w-72 bg-white text-gray-900 p-2 flex flex-col md:h-[calc(100vh-120px)] min-h-0 overflow-hidden rounded-r-md",
+      "w-full md:w-72 bg-white text-gray-900 p-2 flex flex-col h-full min-h-0 overflow-hidden rounded-r-md",
     isSelected: "bg-gray-100 text-gray-900 rounded-md px-3 py-2 border-l-4 border-blue-500",
     parentColor: "px-4 py-2 text-base text-gray-900 hover:bg-gray-100 rounded-md",
     childColor: "px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md",

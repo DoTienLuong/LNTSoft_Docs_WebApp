@@ -5,10 +5,18 @@ import { getThemeStyles } from "../../config/themeStyles";
 
 export default function ModulesModal({ open, onClose, modulesList, loadingModules, modulesError, onSelectCategory }) {
   const [expandedIds, setExpandedIds] = useState(new Set());
+  const [selectedType, setSelectedType] = useState("Work Area");
   const { effective } = useTheme();
   const theme = getThemeStyles(effective);
   const [headerOffset, setHeaderOffset] = useState(64);
   const [animateIn, setAnimateIn] = useState(false);
+
+  const normalizeCategoryType = (value) => {
+    const v = (value || "").toString().trim().toLowerCase();
+    if (v === "setting") return "Setting";
+    if (v === "report") return "Report";
+    return "Work Area";
+  };
 
   useEffect(() => {
     const calc = () => {
@@ -28,6 +36,7 @@ export default function ModulesModal({ open, onClose, modulesList, loadingModule
   useEffect(() => {
     if (open) {
       setAnimateIn(false);
+      setSelectedType("Work Area");
       const r = requestAnimationFrame(() => setAnimateIn(true));
       return () => cancelAnimationFrame(r);
     }
@@ -86,6 +95,19 @@ export default function ModulesModal({ open, onClose, modulesList, loadingModule
         style={{ maxHeight: `calc(100vh - ${headerOffset + 48}px)` }}
       >
         <div className="relative px-6 py-4 flex items-center justify-center border-b border-blue-100/70 bg-gradient-to-r from-sky-50 to-indigo-50 shadow-inner">
+          <div className="absolute left-6">
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="h-8 rounded-md px-2 text-sm bg-white text-slate-700 border border-slate-300 outline-none focus:ring-2 focus:ring-sky-300"
+              aria-label="Filter category type"
+              title="Category type"
+            >
+              <option value="Work Area">Work Area</option>
+              <option value="Setting">Setting</option>
+              <option value="Report">Report</option>
+            </select>
+          </div>
           <h3 className="text-lg font-semibold text-center">
             <span className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-sky-100 to-indigo-100 text-blue-700 ring-1 ring-blue-300/60 shadow-sm">
               All Modules
@@ -115,7 +137,8 @@ export default function ModulesModal({ open, onClose, modulesList, loadingModule
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {modulesList.map((m) => {
               const cats = Array.isArray(m.categories) ? m.categories : [];
-              const roots = buildCategoryTree(cats);
+              const scopedCats = cats.filter((c) => normalizeCategoryType(c.category_type) === selectedType);
+              const roots = buildCategoryTree(scopedCats);
               return (
                 <div key={m.id} className={theme.moduleCardClass}>
                   <div className="mb-3">
